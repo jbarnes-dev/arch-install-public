@@ -16,21 +16,14 @@ aur_packages=(
 
 package_payload_intact() {
     local package=$1
-    local installed_path
     local theme_dir
 
     pacman -Qq "$package" >/dev/null 2>&1 || return 1
 
-    while IFS= read -r installed_path; do
-        if [[ $installed_path == */ ]]; then
-            [[ -d $installed_path ]] || return 1
-        else
-            [[ -e $installed_path || -L $installed_path ]] || return 1
-        fi
-    done < <(pacman -Qlq "$package")
-
-    # Also check payload required by this installer. This catches an old or
-    # incompletely built package whose own manifest never recorded the files.
+    # Check payload that this installer actually consumes. A package can
+    # intentionally register paths that are generated or removed at runtime,
+    # so treating every absent pacman manifest entry as corruption is too
+    # aggressive.
     case $package in
         vimix-gtk-themes-git)
             for theme_dir in /usr/share/themes/vimix-dark-*/gtk-4.0; do
@@ -41,6 +34,9 @@ package_payload_intact() {
                 fi
             done
             return 1
+            ;;
+        *)
+            return 0
             ;;
     esac
 }
@@ -76,14 +72,19 @@ for package in "${aur_packages[@]}"; do
 done
 
 if (( ${#broken_packages[@]} )); then
-    printf 'Recovering AUR packages with missing files: %s\n' \
+    printf 'Clean-rebuilding AUR packages with missing required files: %s\n' \
         "${broken_packages[*]}"
-    yay -S "${broken_packages[@]}"
+    yay -S --rebuild --answerclean All "${broken_packages[@]}"
 
     for package in "${broken_packages[@]}"; do
         package_payload_intact "$package" || {
             printf 'error: %s still has missing files after reinstall\n' \
                 "$package" >&2
+            if [[ $package == vimix-gtk-themes-git ]]; then
+                printf 'GTK 4 theme directories actually installed:\n' >&2
+                find /usr/share/themes -mindepth 2 -maxdepth 2 \
+                    -type d -name gtk-4.0 -print 2>/dev/null >&2
+            fi
             exit 1
         }
     done
