@@ -2,9 +2,16 @@
 set -Eeuo pipefail
 
 readonly REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly ALACRITTY_SOURCE=/home/jonathan/tmp/alacritty
 source "$REPO_DIR/scripts/lib.sh"
 
+[[ -f "$ALACRITTY_SOURCE/alacritty.toml" &&
+    -f "$ALACRITTY_SOURCE/alacritty.yml" &&
+    -d "$ALACRITTY_SOURCE/themes" ]] ||
+    die "Alacritty configuration not found at $ALACRITTY_SOURCE"
+
 install -d \
+    "$HOME/.config/alacritty" \
     "$HOME/.config/i3" \
     "$HOME/.config/picom" \
     "$HOME/.config/polybar" \
@@ -17,6 +24,12 @@ install -d \
 for file in .bash_profile .bashrc .vimrc .xinitrc .Xresources; do
     backup_file "$HOME/$file"
 done
+
+for file in alacritty.toml alacritty.yml; do
+    backup_file "$HOME/.config/alacritty/$file"
+    cp -a -- "$ALACRITTY_SOURCE/$file" "$HOME/.config/alacritty/$file"
+done
+cp -a -- "$ALACRITTY_SOURCE/themes" "$HOME/.config/alacritty/"
 
 cat > "$HOME/.bash_profile" <<'EOF'
 [[ -f ~/.bashrc ]] && source ~/.bashrc
@@ -60,14 +73,6 @@ exec i3
 EOF
 
 cat > "$HOME/.Xresources" <<'EOF'
-URxvt.font: xft:RobotoMono Nerd Font:size=10
-URxvt.termName: rxvt-unicode-256color
-URxvt.scrollBar: false
-URxvt.perl-ext-common: default,matcher
-URxvt.url-launcher: /usr/bin/xdg-open
-URxvt.matcher.button: 1
-URxvt.foreground: #ffffff
-URxvt.background: rgba:0000/0000/0000/cccc
 Xft.dpi: 96
 Xft.antialias: true
 Xft.hinting: true
@@ -212,10 +217,11 @@ chmod +x "$HOME/.config/polybar/launch.sh"
 
 cat > "$HOME/.config/i3/config" <<'EOF'
 set $mod Mod4
+set $terminal alacritty
 font pango:RobotoMono Nerd Font 9
 floating_modifier $mod
 
-bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec --no-startup-id $terminal
 bindsym $mod+d exec rofi -show drun
 bindsym $mod+space exec rofi -show run
 bindsym $mod+l exec betterlockscreen -l

@@ -8,7 +8,7 @@ packages=(
 
     # X11 and i3 desktop
     xorg-server xorg-xinit xorg-xrandr xorg-xrdb xorg-xset
-    i3-wm dmenu rofi rxvt-unicode
+    i3-wm dmenu rofi alacritty
     picom polybar dunst feh arandr
 
     # Desktop integration
@@ -20,7 +20,7 @@ packages=(
     lxappearance gtk3 xdg-utils
 
     # Fonts
-    noto-fonts ttf-roboto-mono-nerd
+    noto-fonts ttf-roboto-mono-nerd ttf-cascadia-code
 
     # Applications
     firefox discord signal-desktop
