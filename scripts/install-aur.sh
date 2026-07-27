@@ -17,6 +17,7 @@ aur_packages=(
 package_payload_intact() {
     local package=$1
     local installed_path
+    local theme_dir
 
     pacman -Qq "$package" >/dev/null 2>&1 || return 1
 
@@ -32,9 +33,14 @@ package_payload_intact() {
     # incompletely built package whose own manifest never recorded the files.
     case $package in
         vimix-gtk-themes-git)
-            [[ -d /usr/share/themes/vimix-dark-ruby/gtk-4.0/assets &&
-                -f /usr/share/themes/vimix-dark-ruby/gtk-4.0/gtk.css &&
-                -f /usr/share/themes/vimix-dark-ruby/gtk-4.0/gtk-dark.css ]]
+            for theme_dir in /usr/share/themes/vimix-dark-*/gtk-4.0; do
+                if [[ -d $theme_dir/assets &&
+                    -f $theme_dir/gtk.css &&
+                    -f $theme_dir/gtk-dark.css ]]; then
+                    return 0
+                fi
+            done
+            return 1
             ;;
     esac
 }
