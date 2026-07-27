@@ -24,7 +24,7 @@ log 'Installing yay and AUR packages'
 log 'Writing user configuration'
 "$REPO_DIR/scripts/configure-user.sh"
 
-log 'Enabling NetworkManager'
-sudo systemctl enable --now NetworkManager.service
+#log 'Enabling NetworkManager'
+#sudo systemctl enable --now NetworkManager.service
 
 log 'Installation complete. Start a new login session to use the new configuration.'
