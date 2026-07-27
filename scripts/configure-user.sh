@@ -10,6 +10,7 @@ install -d \
     "$HOME/.config/polybar" \
     "$HOME/.config/rofi" \
     "$HOME/.config/gtk-3.0" \
+    "$HOME/.config/gtk-4.0" \
     "$HOME/.vim/colors" \
     "$HOME/Pictures"
 
@@ -321,6 +322,17 @@ cat > "$HOME/.config/gtk-3.0/gtk.css" <<'EOF'
 }
 .titlebar { border-radius: 0; }
 EOF
+
+# Libadwaita does not read the GTK 3 theme setting. Link the matching GTK 4
+# assets into the per-user configuration so GTK 4 applications use Vimix too.
+readonly GTK4_THEME_DIR=/usr/share/themes/vimix-dark-ruby/gtk-4.0
+[[ -d "$GTK4_THEME_DIR" ]] ||
+    die "GTK 4 theme assets not found at $GTK4_THEME_DIR"
+for theme_file in assets gtk.css gtk-dark.css; do
+    theme_target="$HOME/.config/gtk-4.0/$theme_file"
+    backup_file "$theme_target"
+    ln -sfnT "$GTK4_THEME_DIR/$theme_file" "$theme_target"
+done
 
 find "$REPO_DIR/homestuff/Pictures" -maxdepth 1 -type f -exec cp -n -- {} "$HOME/Pictures/" \;
 

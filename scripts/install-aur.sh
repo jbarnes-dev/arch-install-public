@@ -10,7 +10,6 @@ aur_packages=(
     vimix-icon-theme-git
     eddie-ui
     betterlockscreen
-    python-pmw
     djvu2pdf
     slack-desktop
 )
