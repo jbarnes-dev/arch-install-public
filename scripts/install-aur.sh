@@ -14,6 +14,31 @@ aur_packages=(
     slack-desktop
 )
 
+package_payload_intact() {
+    local package=$1
+    local installed_path
+
+    pacman -Qq "$package" >/dev/null 2>&1 || return 1
+
+    while IFS= read -r installed_path; do
+        if [[ $installed_path == */ ]]; then
+            [[ -d $installed_path ]] || return 1
+        else
+            [[ -e $installed_path || -L $installed_path ]] || return 1
+        fi
+    done < <(pacman -Qlq "$package")
+
+    # Also check payload required by this installer. This catches an old or
+    # incompletely built package whose own manifest never recorded the files.
+    case $package in
+        vimix-gtk-themes-git)
+            [[ -d /usr/share/themes/vimix-dark-ruby/gtk-4.0/assets &&
+                -f /usr/share/themes/vimix-dark-ruby/gtk-4.0/gtk.css &&
+                -f /usr/share/themes/vimix-dark-ruby/gtk-4.0/gtk-dark.css ]]
+            ;;
+    esac
+}
+
 if ! command -v yay >/dev/null; then
     command -v git >/dev/null || {
         printf 'git is required to bootstrap yay\n' >&2
@@ -33,3 +58,27 @@ if ! command -v yay >/dev/null; then
 fi
 
 yay -S --needed "${aur_packages[@]}"
+
+# An interrupted upgrade or manual file removal can leave pacman's database
+# claiming a package is current even though some of its payload is absent.
+# Reinstall only packages whose registered files are incomplete.
+broken_packages=()
+for package in "${aur_packages[@]}"; do
+    if ! package_payload_intact "$package"; then
+        broken_packages+=("$package")
+    fi
+done
+
+if (( ${#broken_packages[@]} )); then
+    printf 'Recovering AUR packages with missing files: %s\n' \
+        "${broken_packages[*]}"
+    yay -S "${broken_packages[@]}"
+
+    for package in "${broken_packages[@]}"; do
+        package_payload_intact "$package" || {
+            printf 'error: %s still has missing files after reinstall\n' \
+                "$package" >&2
+            exit 1
+        }
+    done
+fi
