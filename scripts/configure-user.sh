@@ -304,6 +304,9 @@ EOF
 
 gtk_theme=
 for theme_dir in \
+    /usr/share/themes/Vimix-dark-ruby/gtk-4.0 \
+    /usr/share/themes/Vimix-dark-beryl/gtk-4.0 \
+    /usr/share/themes/Vimix-dark-*/gtk-4.0 \
     /usr/share/themes/vimix-dark-ruby/gtk-4.0 \
     /usr/share/themes/vimix-dark-beryl/gtk-4.0 \
     /usr/share/themes/vimix-dark-*/gtk-4.0; do

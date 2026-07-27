@@ -26,7 +26,9 @@ package_payload_intact() {
     # aggressive.
     case $package in
         vimix-gtk-themes-git)
-            for theme_dir in /usr/share/themes/vimix-dark-*/gtk-4.0; do
+            for theme_dir in \
+                /usr/share/themes/Vimix-dark-*/gtk-4.0 \
+                /usr/share/themes/vimix-dark-*/gtk-4.0; do
                 if [[ -d $theme_dir/assets &&
                     -f $theme_dir/gtk.css &&
                     -f $theme_dir/gtk-dark.css ]]; then
